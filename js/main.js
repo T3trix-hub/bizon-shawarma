@@ -1,0 +1,30 @@
+(function(){
+const S=SITE,$=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tel=p=>'tel:'+p.replace(/[^+\d]/g,''),br=n=>String(n).replace('.',',')+' Br';
+const pages=[['index.html','Главная'],['menu.html','Меню'],['about.html','О нас'],['contacts.html','Контакты']];
+const cur=location.pathname.split('/').pop()||'index.html';
+$('#site-header').innerHTML=`<div class="wrap bar"><a class="logo" href="index.html"><img src="images/logo.png" alt="" width="36" height="36"><span><small>ШАЎРМА</small>БІЗОН</span></a><nav id="nav">${pages.map(p=>`<a href="${p[0]}"${p[0]===cur?' class="on"':''}>${p[1]}</a>`).join('')}<a class="btn sm" href="${tel(S.phone)}">Позвонить</a></nav><button id="theme" aria-label="Сменить тему"></button><button id="burger" aria-label="Меню"><i></i><i></i><i></i></button></div>`;
+$('#burger').onclick=()=>$('#nav').classList.toggle('open');
+$('#site-footer').innerHTML=`<div class="wrap foot"><div><img src="images/logo.png" alt="" width="44" height="44"><b>БІЗОН</b>${S.address}<br>${S.hours}</div><div>${pages.map(p=>`<a href="${p[0]}">${p[1]}</a>`).join('<br>')}</div><div><a href="${tel(S.phone)}">${S.phone}</a><br><a href="https://instagram.com/${S.instagram}" target="_blank" rel="noopener">Instagram @${S.instagram}</a></div></div><div class="wrap copy">© БІЗОН · Сайт сделал <a href="https://t3trix-hub.github.io/t3trix-portfolio/" target="_blank" rel="noopener">T3trix</a></div>`;
+$$('[data-site]').forEach(e=>e.textContent=S[e.dataset.site]);
+$$('[data-tel]').forEach(e=>e.href=tel(S[e.dataset.tel]));
+$$('[data-ig]').forEach(e=>e.href='https://instagram.com/'+S.instagram);
+$$('[data-map]').forEach(e=>e.href=S.ymaps);
+const card=(it,c)=>`<article class="card rv"><div class="ph"><img loading="lazy" src="images/menu/${it[0]}.jpg" alt="${esc(it[1])}" onerror="this.parentNode.classList.add('no');this.remove()"><span>${c.icon}</span><i class="pr">${it[3].length>1?'от ':''}${br(Math.min(...it[3].map(s=>s[1])))}</i></div><div class="cb"><h3>${esc(it[1])}</h3>${it[2]?`<p>${esc(it[2])}</p>`:''}<ul>${it[3].map(s=>`<li><span>${esc(s[0])}${s[2]?` <em>${s[2]}</em>`:''}</span><b>${br(s[1])}</b></li>`).join('')}</ul></div></article>`;
+const mg=$('#menu');
+if(mg){const tabs=$('#tabs');tabs.innerHTML=MENU.map(c=>`<button data-c="${c.id}">${c.icon} ${c.name}</button>`).join('');
+ const show=id=>{const c=MENU.find(x=>x.id===id)||MENU[0];$$('button',tabs).forEach(b=>b.classList.toggle('on',b.dataset.c===c.id));mg.innerHTML=c.items.map(i=>card(i,c)).join('');history.replaceState(null,'','#'+c.id);window.reveal&&reveal()};
+ tabs.onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.c)};show(location.hash.slice(1))}
+const fe=$('#featured');
+if(fe)fe.innerHTML=FEATURED.map(id=>{for(const c of MENU){const i=c.items.find(x=>x[0]===id);if(i)return card(i,c)}return''}).join('');
+const g=$('#gallery');
+if(g)g.innerHTML=GALLERY.map(p=>`<figure><img loading="lazy" src="${p[0]}" alt="${esc(p[1])}"><figcaption>${esc(p[1])}</figcaption></figure>`).join('');
+const root=document.documentElement,tb=$('#theme'),paint=()=>tb.textContent=root.dataset.theme==='dark'?'☀️':'🌙';
+paint();tb.onclick=()=>{const t=root.dataset.theme==='dark'?'light':'dark';root.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}paint()};
+$$('main h1,main h2,.facts>div,.band>*,.two>*,#gallery figure,.hero>*,.chips').forEach(e=>e.classList.add('rv'));
+const io='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){const t=x.target;t.classList.add('in');io.unobserve(t);setTimeout(()=>t.style.transitionDelay='',900)}}),{threshold:.08}):null;
+window.reveal=()=>{let i=0;$$('.rv:not(.in)').forEach(e=>{if(!io)return e.classList.add('in');if(!e.dataset.o){e.dataset.o=1;e.style.transitionDelay=Math.min(i++,8)*60+'ms';io.observe(e)}})};reveal();
+document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||a.target||e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;const u=new URL(a.href,location.href);if(u.origin!==location.origin||u.pathname===location.pathname||!/\.html?$|\/$/.test(u.pathname))return;e.preventDefault();document.body.classList.add('leave');setTimeout(()=>location.href=a.href,220)});
+addEventListener('pageshow',e=>{if(e.persisted)document.body.classList.remove('leave')});
+})();
